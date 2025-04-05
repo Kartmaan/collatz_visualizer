@@ -438,6 +438,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "clipboard",
+ "futures",
  "iced",
  "iced_native",
  "image",

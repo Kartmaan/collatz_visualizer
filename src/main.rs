@@ -57,6 +57,7 @@ pub enum Message {
     ChartGenerated(Result<String, String>),
     ChartSaved(Result<(), String>),
     ClipboardCopied(Result<(), String>),
+    CleanupOldTempFiles(Result<(), String>),
 }
 
 impl Application for CollatzApp {
@@ -164,11 +165,22 @@ impl Application for CollatzApp {
                 
                 // Si au moins une séquence a été générée, créer le graphique
                 if !self.sequence1.is_empty() || !self.sequence2.is_empty() {
+                    // D'abord, nettoyer l'ancien fichier temporaire s'il existe
+                    let cleanup_command = if let Some(old_path) = &self.chart_path {
+                        Command::perform(
+                            cleanup_temp_file(old_path.clone()),
+                            Message::CleanupOldTempFiles,
+                        )
+                    } else {
+                        Command::none()
+                    };
+                    
                     // Générer un nom de fichier temporaire pour le graphique
                     let now = Local::now();
                     let filename = format!("temp_collatz_{}.png", now.format("%Y%m%d_%H%M%S"));
                     
-                    Command::perform(
+                    // Ensuite, générer le nouveau graphique
+                    let generate_command = Command::perform(
                         generate_chart(
                             PathBuf::from(&filename),
                             self.value1,
@@ -177,7 +189,10 @@ impl Application for CollatzApp {
                             self.sequence2.clone(),
                         ),
                         Message::ChartGenerated,
-                    )
+                    );
+                    
+                    // Exécuter les deux commandes en séquence
+                    Command::batch(vec![cleanup_command, generate_command])
                 } else {
                     Command::none()
                 }
@@ -280,6 +295,15 @@ impl Application for CollatzApp {
                     Err(e) => {
                         self.error_message = format!("Erreur lors de la copie: {}", e);
                     }
+                }
+                Command::none()
+            }
+            
+            Message::CleanupOldTempFiles(result) => {
+                // On peut ignorer le résultat, car ce n'est pas critique si le nettoyage échoue
+                // Mais on pourrait ajouter un log ou une notification en cas d'erreur
+                if let Err(e) = result {
+                    println!("Avertissement: Impossible de supprimer l'ancien fichier temporaire: {}", e);
                 }
                 Command::none()
             }
@@ -434,6 +458,55 @@ impl Application for CollatzApp {
     }
 }
 
+// Fonction pour nettoyer les fichiers temporaires
+async fn cleanup_temp_file(path: String) -> Result<(), String> {
+    // Vérifier si le fichier existe et s'il s'agit d'un fichier temporaire
+    if path.contains("temp_collatz_") && path.ends_with(".png") {
+        // Supprimer le fichier
+        match fs::remove_file(&path) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(format!("Erreur lors de la suppression du fichier temporaire: {}", e)),
+        }
+    } else {
+        // Si ce n'est pas un fichier temporaire, ne rien faire
+        Ok(())
+    }
+}
+
+// Fonction pour nettoyer tous les fichiers temporaires du dossier courant
+async fn cleanup_all_temp_files() -> Result<(), String> {
+    // Obtenir le répertoire courant
+    let current_dir = match std::env::current_dir() {
+        Ok(dir) => dir,
+        Err(e) => return Err(format!("Erreur lors de l'obtention du répertoire courant: {}", e)),
+    };
+    
+    // Lire le contenu du répertoire
+    let entries = match fs::read_dir(current_dir) {
+        Ok(entries) => entries,
+        Err(e) => return Err(format!("Erreur lors de la lecture du répertoire: {}", e)),
+    };
+    
+    // Parcourir les entrées et supprimer les fichiers temporaires
+    for entry in entries {
+        if let Ok(entry) = entry {
+            if let Ok(file_type) = entry.file_type() {
+                if file_type.is_file() {
+                    if let Ok(file_name) = entry.file_name().into_string() {
+                        if file_name.starts_with("temp_collatz_") && file_name.ends_with(".png") {
+                            if let Err(e) = fs::remove_file(entry.path()) {
+                                println!("Avertissement: Impossible de supprimer le fichier temporaire {}: {}", file_name, e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    Ok(())
+}
+
 // Fonction pour générer le graphique
 async fn generate_chart(
     path: PathBuf,
@@ -580,5 +653,9 @@ async fn copy_sequences_to_clipboard(
 }
 
 fn main() -> iced::Result {
+    // Au démarrage de l'application, nettoyer tous les fichiers temporaires
+    // qui pourraient être restés d'une exécution précédente
+    let _ = futures::executor::block_on(cleanup_all_temp_files());
+    
     CollatzApp::run(Settings::default())
 }
