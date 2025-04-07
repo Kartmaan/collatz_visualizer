@@ -1,73 +1,83 @@
-# Application de Visualisation de la Conjecture de Syracuse (Collatz)
+# Collatz Conjecture Visualization Application
 
-Cette application permet de visualiser graphiquement les suites de la conjecture de Syracuse (également connue sous le nom de conjecture de Collatz) pour un ou deux entiers donnés.
+This application allows you to graphically visualize the sequences of the Collatz Conjecture (also known as the Syracuse Conjecture) for one or two given integers.
 
-## La Conjecture de Syracuse
+## The Collatz Conjecture
 
-La conjecture de Syracuse est définie par la règle suivante :
-- Si n est pair, le terme suivant est n/2
-- Si n est impair, le terme suivant est 3n+1
+The Collatz Conjecture is defined by the following rule:
+- If n is even, the next term is n/2
+- If n is odd, the next term is 3n+1
 
-La suite s'arrête lorsque la valeur 1 est atteinte.
+The sequence stops when the value 1 is reached.
 
-## Fonctionnalités
+## Screenshots
 
-- Visualisation graphique des suites pour un ou deux entiers
-- Affichage de statistiques détaillées :
-  - Temps de vol (nombre d'étapes)
-  - Altitude maximale (valeur maximale atteinte)
-  - Nombre de valeurs paires/impaires
-  - Temps d'arrêt
-- Génération de valeurs aléatoires
-- Enregistrement de l'image du graphique
-- Copie des suites dans le presse-papier
+**Window**
+
+![cap_win](/img/win_sc.png)
+
+**Saved chart**
+
+![saved_chart](/img/saved.png)
+
+## Features
+
+- Graphical visualization of sequences for one or two integers
+- Detailed statistics display:
+  - Flight time (number of steps)
+  - Maximum altitude (highest value reached)
+  - Count of even/odd values
+  - Downtime
+- Random value generation
+- Save the graph image
+- Copy sequences to the clipboard
 
 ## Installation
 
-### Prérequis
+### Prerequisites
 
-- Rust et Cargo (https://www.rust-lang.org/tools/install)
+- Rust and Cargo (https://www.rust-lang.org/tools/install)
 
 ### Installation
 
-1. Décompressez l'archive zip
-2. Ouvrez un terminal dans le dossier décompressé
-3. Exécutez la commande suivante pour compiler et lancer l'application :
+1. Extract the zip archive
+2. Open a terminal in the extracted folder
+3. Run the following command to compile and launch the application:
 
 ```bash
 cargo run
 ```
 
-Pour créer une version optimisée :
+To create an optimized version:
 
 ```bash
 cargo build --release
 ```
 
-L'exécutable se trouvera dans le dossier `target/release/`.
+The executable will be located in the `target/release/` folder.
 
-## Utilisation
+## Usage
 
-1. Entrez un ou deux nombres entiers dans les champs de saisie
-2. Cliquez sur "Visualiser" pour afficher le graphique
-3. Utilisez "Randomize" pour générer des valeurs aléatoires
-4. Utilisez "Enregistrer" pour sauvegarder l'image du graphique
-5. Utilisez "Copier" pour copier les suites dans le presse-papier
+1. Enter one or two integers in the input fields
+2. Click "Visualize" to display the graph
+3. Use "Randomize" to generate random values
+4. Use "Save" to save the graph image
+5. Use "Copy" to copy the sequences to the clipboard
 
-## Structure du code
+## Code Structure
 
-- `src/main.rs` : Interface utilisateur et logique principale de l'application
-- `src/collatz.rs` : Implémentation de l'algorithme de la conjecture de Syracuse
+- `src/main.rs`: User interface and main application logic
+- `src/collatz.rs`: Implementation of the Collatz Conjecture algorithm
 
-## Dépendances
+## Dependencies
 
-- iced : Interface utilisateur graphique
-- plotters : Visualisation graphique
-- rand : Génération de nombres aléatoires
-- clipboard : Accès au presse-papier
-- chrono : Gestion des dates et heures
-- image : Manipulation d'images
+- iced: Graphical user interface
+- plotters: Graph visualization
+- rand: Random number generation
+- clipboard: Clipboard access
+- chrono: Date and time management
+- image: Image manipulation
 
-## Licence
+## License
 
-Ce projet est distribué sous licence MIT.
+This project is distributed under the MIT license.
